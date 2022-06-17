@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+def cmd(cmd, reason, optional = nil, emoji = '✅')
+    STDOUT.write "⏱  #{reason}"
+    success = system("#{cmd} > /dev/null 2> /dev/null")
+    abort "\r🛑\n⚠️  Could not execute: #{cmd}" if !success && optional.nil?
+    puts "\r#{emoji}"
+end
+
+branch_name = `git rev-parse --abbrev-ref HEAD`.strip()
+
+puts "Current branch: #{branch_name}"
+
+abort "Already in master branch!" if branch_name == "master"
+
+cmd 'git stash', 'Stashing WIP', 'optional'
+cmd 'git checkout master', 'Checkout master'
+cmd 'git pull', 'Pulling...'
+cmd "git checkout #{branch_name}", "Checkout #{branch_name}"
+cmd "git stash pop", "Unstash WIP", 'optional'
+cmd "git rebase master", "Rebasing..."

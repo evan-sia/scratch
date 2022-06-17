@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+def cmd(cmd, reason, emoji = '✅')
+    STDOUT.write "⏱  #{reason}"
+    success = system("#{cmd} > /dev/null 2> /dev/null")
+    abort "\r🛑\n⚠️  Could not execute: #{cmd}" unless success
+    puts "\r#{emoji}"
+end
+  
+branch_name = `git rev-parse --abbrev-ref HEAD`.strip()
+
+puts "Current branch: #{branch_name}"
+
+abort "Cannot merge staging into staging 😉" if branch_name == "staging"
+
+cmd 'git fetch origin staging', 'Fetching origin/staging'
+cmd 'git checkout staging', 'Checking out staging'
+cmd 'git reset --hard origin/staging', 'Resetting staging to origin/staging'
+cmd "git merge #{branch_name} --no-edit", "Merging #{branch_name} into staging"
+cmd "git push origin staging", "Merge successful. Push to staging"
+cmd "git checkout #{branch_name}", "Checkout out #{branch_name}"
